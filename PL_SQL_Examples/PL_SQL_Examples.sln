@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.28307.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CA_SqlTableToXml", "CA_SqlTableToXml\CA_SqlTableToXml.csproj", "{BB91638B-51C3-4A0B-A975-B6A7516A9712}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CA_GetDataFromOracleServer", "CA_GetDataFromOracleServer\CA_GetDataFromOracleServer.csproj", "{439A90BD-9011-4259-AD68-FC96FFF12C14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CA_InsertDataIntoOracleServer", "CA_InsertDataIntoOracleServer\CA_InsertDataIntoOracleServer.csproj", "{0C3535E1-B310-4703-9631-7D50AE542B17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{BB91638B-51C3-4A0B-A975-B6A7516A9712}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB91638B-51C3-4A0B-A975-B6A7516A9712}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB91638B-51C3-4A0B-A975-B6A7516A9712}.Release|Any CPU.Build.0 = Release|Any CPU
+		{439A90BD-9011-4259-AD68-FC96FFF12C14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{439A90BD-9011-4259-AD68-FC96FFF12C14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{439A90BD-9011-4259-AD68-FC96FFF12C14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{439A90BD-9011-4259-AD68-FC96FFF12C14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C3535E1-B310-4703-9631-7D50AE542B17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C3535E1-B310-4703-9631-7D50AE542B17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C3535E1-B310-4703-9631-7D50AE542B17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C3535E1-B310-4703-9631-7D50AE542B17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
