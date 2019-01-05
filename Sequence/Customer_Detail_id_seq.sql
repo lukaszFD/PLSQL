@@ -1,0 +1,3 @@
+CREATE SEQUENCE Customer_Detail_ID_seq 
+START WITH 1
+INCREMENT BY 1;
