@@ -1,25 +1,26 @@
 DECLARE
+
   v_xml_dict varchar2(15) := 'XMLSTORE';
-  v_xml_file_name VARCHAR2(20);
   v_b_file BFILE;
---  v_XML_ADD XMLTYPE := xmltype(bfilename(xml_dict, '10.xml'),NLS_CHARSET_ID('AL32UTF8'));
   v_return_number NUMBER;
-  v_files_numer number := 19971;
+  v_files_numer number := 18000;
+  
 BEGIN
 
-  v_return_number := ADD_CUSTOMER
-  (
-    XML_ADD 
-  );
-  DBMS_OUTPUT.PUT_LINE( v_return_number);
+    FOR file_number IN 1..v_files_numer LOOP
+    
+    v_b_file := bfilename(v_xml_dict, file_number ||'.xml');
+    
+        If Dbms_Lob.Fileexists(v_b_file)= 1 Then
+        
+          v_return_number := ADD_CUSTOMER
+          (
+            xmltype(v_b_file,NLS_CHARSET_ID('AL32UTF8')) 
+           );
+           
+        Else CONTINUE;
+        end if;
+    END LOOP;
+    
 END;
 
-Declare
-plik bfile;
-Begin
-Plik:=bfilename('XMLDIC', '10.xml');
-If Dbms_Lob.Fileexists(Plik)=1 Then
-     Dbms_Output.Put_Line('jest taki plik!');
-Else Dbms_Output.Put_Line('pliku niet!');
-end if;
-end;

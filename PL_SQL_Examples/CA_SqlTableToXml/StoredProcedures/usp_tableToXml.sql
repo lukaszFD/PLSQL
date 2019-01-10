@@ -20,8 +20,23 @@ AS
 			  ,ad.[StateProvinceID] AS "Address/RegionID"
 		FROM 
 			[AdventureWorks2012].[Person].[Person] per
-			LEFT JOIN [AdventureWorks2012].[Person].[BusinessEntityAddress] bea ON bea.BusinessEntityID = per.BusinessEntityID
-			LEFT JOIN [AdventureWorks2012].[Person].[Address] ad ON ad.AddressID = bea.AddressID
+			inner JOIN 
+					(
+					SELECT 
+						*
+					FROM 
+						(
+						SELECT 
+							 [BusinessEntityID]
+							,[AddressID]
+							,ROW_NUMBER() OVER (PARTITION BY [BusinessEntityID] ORDER BY AddressID desc) row
+						FROM 
+							[AdventureWorks2012].[Person].[BusinessEntityAddress]
+						)tmp 
+							WHERE 
+								tmp.row = 1
+					) bea ON bea.BusinessEntityID = per.BusinessEntityID
+			inner JOIN [AdventureWorks2012].[Person].[Address] ad ON ad.AddressID = bea.AddressID
 		WHERE 
 			per.BusinessEntityID = @id
 		FOR XML PATH('Customer') ,TYPE

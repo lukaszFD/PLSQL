@@ -18,7 +18,7 @@ namespace CA_SqlTableToXml
                     {
                         foreach (DataRow item in db.Rows)
                         {
-                            File.WriteAllText(@"D:\XML_Test\" + i.ToString() + ".xml", item[0].ToString());
+                            File.WriteAllText(@"C:\Users\lukasz.dejko\Documents\XML_Test\" + i.ToString() + ".xml", item[0].ToString());
                         }
                     }
                 }
