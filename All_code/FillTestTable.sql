@@ -6,7 +6,7 @@ create table tbl_Region
     Name nvarchar2(50) not null,
     CreatedON date default sysdate not null
 );
-
+/
 insert into tbl_region (region_id, State_Province_Code, Country_Region_Code, Name) values (1,'AB ','CA','Alberta');  Commit;
 insert into tbl_region (region_id, State_Province_Code, Country_Region_Code, Name) values (2,'AK ','US','Alaska');  Commit;
 insert into tbl_region (region_id, State_Province_Code, Country_Region_Code, Name) values (3,'AL ','US','Alabama');  Commit;
@@ -189,7 +189,7 @@ insert into tbl_region (region_id, State_Province_Code, Country_Region_Code, Nam
 insert into tbl_region (region_id, State_Province_Code, Country_Region_Code, Name) values (180,'94','FR','Val de Marne');  Commit;
 
 
-
+/
 create table tbl_Customer
 (
     Customer_ID number(38,0) CONSTRAINT pk_Customer_id primary key not null,
@@ -200,55 +200,57 @@ create table tbl_Customer
     Date_From date default sysdate not null,
     Date_To date default TO_DATE('31.12.9999 23:59:59', 'dd/mm/yyyy hh24:mi:ss')
 );
+/
 create table tbl_Customer_Address
 (
     Customer_Address_ID number(38,0) CONSTRAINT pk_CustomerAddress_id primary key not null,
-    Customer_ID number(30) not null,
-    Region_ID number(3) null,
-    Street nvarchar2(50) null,
-    City nvarchar2(50) null,
-    Postal_Code nvarchar2(50) null,
+    Customer_ID number(38,0) not null,
+    Region_ID number(38,0) null,
+    Street nvarchar2(100) null,
+    City nvarchar2(100) null,
+    Postal_Code nvarchar2(100) null,
     CreatedON date default sysdate not null,
     
     CONSTRAINT fk_CustomerAddress_ID
     FOREIGN KEY (Customer_ID)
     REFERENCES tbl_Customer(Customer_ID)
 );
+/
 create table tbl_Customer_Details
 (
     Customer_Detail_ID number(38,0)  CONSTRAINT pk_CustomerDetails_id primary key not null,
-    Customer_ID number(30) not null,
-    Person_Type char(2) null,
-    First_Name nvarchar2(50) null,
-    Last_Name nvarchar2(50) null,
+    Customer_ID number(38,0) not null,
+    Person_Type nvarchar2(50) null,
+    First_Name nvarchar2(100) null,
+    Last_Name nvarchar2(100) null,
     CreatedON date default sysdate not null,
     
     CONSTRAINT fk_CustomerDetails_ID
     FOREIGN KEY (Customer_ID)
     REFERENCES tbl_Customer(Customer_ID)
 );
-
+/
 CREATE SEQUENCE Customer_id_seq 
 START WITH 1
 INCREMENT BY 1;
-
+/
 CREATE SEQUENCE Customer_Detail_ID_seq 
 START WITH 1
 INCREMENT BY 1;
-
+/
 CREATE SEQUENCE Customer_Address_id_seq 
 START WITH 1
 INCREMENT BY 1;
-
-create or replace TRIGGER tbl_Cust_On_Insert
-  BEFORE INSERT ON tbl_Customer
-  FOR EACH ROW
-BEGIN
-  SELECT Customer_id_seq.nextval
-  INTO :new.Customer_ID
-  FROM dual;
-END;
-
+/
+-- create or replace TRIGGER tbl_Cust_On_Insert
+  -- BEFORE INSERT ON tbl_Customer
+  -- FOR EACH ROW
+-- BEGIN
+  -- SELECT Customer_id_seq.nextval
+  -- INTO :new.Customer_ID
+  -- FROM dual;
+-- END;
+/
 create or replace TRIGGER tbl_CustDet_On_Insert
   BEFORE INSERT ON tbl_Customer_Details
   FOR EACH ROW
@@ -257,7 +259,7 @@ BEGIN
   INTO :new.Customer_Detail_ID
   FROM dual;
 END;
-
+/
 create or replace TRIGGER tbl_CustAddr_On_Insert
   BEFORE INSERT ON tbl_Customer_Address
   FOR EACH ROW
@@ -266,7 +268,7 @@ BEGIN
   INTO :new.Customer_Address_ID
   FROM dual;
 END;
-
+/
 create or replace TRIGGER tbl_Customer_audit
 before update or delete on tbl_Customer
 for each row
