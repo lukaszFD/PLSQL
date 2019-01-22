@@ -1,3 +1,4 @@
+/* ponizej parsuje xmla i tworze z tego tabele która moge uzyc do zrobienia ainserta */
 Select 
     Contact.*,
     Address.*
@@ -23,3 +24,12 @@ FROM tbl_customer cust, XMLTABLE
     ) Address
     where 
         rownum <= 10;
+/
+/* inne uzycie funkcji do parsowania xmla*/
+SELECT 
+    c.customer_xml.extract('/Customer/Contact/PersonType/text()').getStringVal()
+FROM 
+    tbl_customer c
+where 
+    rownum <= 10 ;
+    
