@@ -14,6 +14,8 @@ begin
 SELECT 
     XMLELEMENT
     ("Customer",
+    --ta funkcja jest potrzebna do stworzenia kolekcji
+    --jezeli mial byc tylko jeden element to jej nie potrzeba 
        XMLAGG
        (
          XMLELEMENT
