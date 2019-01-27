@@ -1,35 +1,29 @@
-/* ponizej parsuje xmla i tworze z tego tabele która moge uzyc do zrobienia ainserta */
+with cte_cust as
+(
+select 
+    fun_return_xmltype('ONE_XML', 'Customers_2.xml') as xml_data
+from 
+    dual
+)
+
 Select 
-    Contact.*,
-    Address.*
-FROM tbl_customer cust, XMLTABLE 
-    (
-       '/Customer/Contact' Passing cust.customer_xml
-       
-       COLUMNS "Person_Type"  nvarchar2(50)
-                  Path 'PersonType',
-               "First_Name"  nvarchar2(100)
-                  Path 'FirstName',
-               "Last_Name"  nvarchar2(100)
-                  Path 'LastName'
-    ) Contact
-    , XMLTABLE 
-    (
-       '/Customer/Address' Passing cust.customer_xml
-       
-       COLUMNS "Street"  nvarchar2(100)
-                  Path 'Street',
-               "City"  nvarchar2(100)
-                  Path 'City'
-    ) Address
-    where 
-        rownum <= 10;
-/
-/* inne uzycie funkcji do parsowania xmla*/
-SELECT 
-    c.customer_xml.extract('/Customer/Contact/PersonType/text()').getStringVal()
+    cust_data.*
 FROM 
-    tbl_customer c
-where 
-    rownum <= 10 ;
+    cte_cust cust, 
+xmltable
+(
+   '$C/Customers/Customer' Passing cust.xml_data as "C"
+   COLUMNS 
+    "CustomerID"    number(38,0)   path 'CustomerID',
+    "Person_Type"   nvarchar2(50)  Path 'Contact/PersonType',
+    "First_Name"    nvarchar2(100) Path 'Contact/FirstName',
+    "Last_Name"     nvarchar2(100) Path 'Contact/LastName',
+    "Street"        nvarchar2(100) Path 'Address/Street',
+    "City"          nvarchar2(100) Path 'Address/City',
+    "Postal_Code"   nvarchar2(100) path 'Address/PostalCode',
+    "Region_ID"     number(38,0)   path 'Address/RegionID',
+    "Customer_XML"  xmltype        path '/Customer'
     
+) cust_data
+    where 
+        rownum<= 10;
