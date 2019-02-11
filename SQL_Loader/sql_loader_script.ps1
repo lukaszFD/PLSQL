@@ -1,0 +1,1 @@
+sqlldr CONTROL=sql_loader_script.ctl skip=1   
