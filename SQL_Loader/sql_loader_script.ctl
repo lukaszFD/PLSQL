@@ -12,6 +12,5 @@ trailing nullcols
              COL4 CHAR(100),
              COL5 CHAR(100),
              COL6 CHAR(100),
-             COL7 CHAR(100),
-             COL8 CHAR(100)
+             COL7 CHAR(100)
            )
