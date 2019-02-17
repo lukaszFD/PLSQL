@@ -10,5 +10,5 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('Sure! What would you like to have?');
    
   EXCEPTION WHEN ex_age THEN
-    DBMS_OUTPUT.PUT_LINE(SQLERRM);   
+    DBMS_OUTPUT.PUT_LINE(SQLERRM || 'ErrorCode : ' ||SQLCODE);   
 END;
