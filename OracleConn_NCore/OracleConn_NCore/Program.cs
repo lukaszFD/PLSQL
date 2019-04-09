@@ -9,6 +9,9 @@ namespace Demo
         {	
             string conString = "User Id=hr;Password=1234;Data Source=localhost:1521/XE;";
 
+            //Using TNSNAMES.ORA 
+            //string conString = "User Id=hr;Password=hr;Data Source=orclpdb;";
+
             using (OracleConnection con = new OracleConnection(conString))
             {
                 using (OracleCommand cmd = con.CreateCommand())
