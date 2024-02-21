@@ -1,5 +1,5 @@
--- Tworzenie tabeli OBJECT_TABLES
-CREATE TABLE OBJECT_TABLES (
+
+CREATE TABLE DB_OBJECT (
   OBJECT_TYPE VARCHAR2(30),
   NAME VARCHAR2(30),
   SQL_SCRIPT CLOB
@@ -11,38 +11,23 @@ CREATE OR REPLACE PROCEDURE POPULATE_OBJECT_TABLES AS
   v_start_pos PLS_INTEGER;
   v_end_pos PLS_INTEGER;
 BEGIN
-  -- Czyszczenie tabeli przed ponownym wypełnieniem
-  DELETE FROM OBJECT_TABLES;
+  DELETE FROM DB_OBJECT;
 
   FOR t IN (SELECT table_name FROM USER_TABLES) LOOP
     v_table_name := t.table_name;
     v_table_ddl := DBMS_METADATA.GET_DDL('TABLE', v_table_name);
     
-    -- Znajdź początkowy i końcowy indeks dla kolumn tabeli
-    v_start_pos := INSTR(v_table_ddl, '(', 1, 1);
-    v_end_pos := INSTR(v_table_ddl, ')', -1, 1);
+    v_start_pos := INSTR(v_table_ddl, 'CREATE ', 1, 1);
+    v_end_pos := INSTR(v_table_ddl, ' SEGMENT', v_start_pos);
     
-    -- Wyciągnij tylko fragment z kolumnami
     v_table_ddl := SUBSTR(v_table_ddl, v_start_pos, v_end_pos - v_start_pos + 1);
     
-    -- Dodaj średnik na końcu
     v_table_ddl := v_table_ddl || ';';
     
-    -- Utwórz tymczasową zmienną CLOB
-    DECLARE
-      v_temp_clob CLOB;
-    BEGIN
-      DBMS_LOB.CREATETEMPORARY(v_temp_clob, TRUE);
-      DBMS_LOB.WRITEAPPEND(v_temp_clob, LENGTH(v_table_ddl), v_table_ddl);
-      
-      -- Dodaj rekord do tabeli OBJECT_TABLES
-      INSERT INTO OBJECT_TABLES (OBJECT_TYPE, NAME, SQL_SCRIPT)
-      VALUES ('table', v_table_name, v_temp_clob);
-      
-      DBMS_LOB.FREETEMPORARY(v_temp_clob);
-    END;
+    INSERT INTO DB_OBJECT (OBJECT_TYPE, NAME, SQL_SCRIPT)
+    VALUES ('table', v_table_name, v_table_ddl);
   END LOOP;
   
-  COMMIT; -- Potwierdzenie zmian w bazie danych
+  COMMIT; 
 END POPULATE_OBJECT_TABLES;
 /
