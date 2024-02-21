@@ -5,7 +5,6 @@ CREATE TABLE OBJECT_TABLES (
   SQL_SCRIPT CLOB
 );
 
--- Tworzenie procedury POPULATE_OBJECT_TABLES
 CREATE OR REPLACE PROCEDURE POPULATE_OBJECT_TABLES AS
   v_table_name VARCHAR2(30);
   v_table_ddl CLOB;
@@ -29,9 +28,19 @@ BEGIN
     -- Dodaj średnik na końcu
     v_table_ddl := v_table_ddl || ';';
     
-    -- Dodaj rekord do tabeli OBJECT_TABLES
-    INSERT INTO OBJECT_TABLES (OBJECT_TYPE, NAME, SQL_SCRIPT)
-    VALUES ('table', v_table_name, v_table_ddl);
+    -- Utwórz tymczasową zmienną CLOB
+    DECLARE
+      v_temp_clob CLOB;
+    BEGIN
+      DBMS_LOB.CREATETEMPORARY(v_temp_clob, TRUE);
+      DBMS_LOB.WRITEAPPEND(v_temp_clob, LENGTH(v_table_ddl), v_table_ddl);
+      
+      -- Dodaj rekord do tabeli OBJECT_TABLES
+      INSERT INTO OBJECT_TABLES (OBJECT_TYPE, NAME, SQL_SCRIPT)
+      VALUES ('table', v_table_name, v_temp_clob);
+      
+      DBMS_LOB.FREETEMPORARY(v_temp_clob);
+    END;
   END LOOP;
   
   COMMIT; -- Potwierdzenie zmian w bazie danych
