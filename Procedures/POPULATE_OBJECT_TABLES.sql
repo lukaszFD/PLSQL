@@ -6,7 +6,7 @@ CREATE TABLE DB_OBJECT (
 );
 
 CREATE OR REPLACE PROCEDURE POPULATE_OBJECT_TABLES AS
-  v_object_type VARCHAR2(10);
+  v_object_type VARCHAR2(30);
   v_object_name VARCHAR2(30);
   v_object_ddl CLOB;
   v_start_pos PLS_INTEGER;
@@ -23,7 +23,7 @@ BEGIN
     -- Znajdź początkowy i końcowy indeks dla kolumn tabeli
     v_start_pos := INSTR(v_object_ddl, 'CREATE ', 1, 1);
     v_end_pos := INSTR(v_object_ddl, ')', -1, 1);
-    
+
     -- Wyciągnij tylko fragment z kolumnami
     v_object_ddl := SUBSTR(v_object_ddl, v_start_pos, v_end_pos - v_start_pos + 1);
 
@@ -62,9 +62,7 @@ BEGIN
     INSERT INTO DB_OBJECT (OBJECT_TYPE, NAME, SQL_SCRIPT)
     VALUES (v_object_type, v_object_name, v_object_ddl);
   END LOOP;
-  
+
   COMMIT; 
 END POPULATE_OBJECT_TABLES;
-/
-
 /
