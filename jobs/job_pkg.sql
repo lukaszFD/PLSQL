@@ -1,32 +1,33 @@
 CREATE OR REPLACE PACKAGE job_management_pkg IS
+
     PROCEDURE create_job(
-        p_job_name IN VARCHAR2,
-        p_job_code IN VARCHAR2,
-        p_created_by IN VARCHAR2,
-        p_freq IN VARCHAR2,
-        p_byhour IN NUMBER,
-        p_byminute IN NUMBER,
-        p_bysecond IN NUMBER
+        p_job_name    IN VARCHAR2,
+        p_job_code    IN VARCHAR2,
+        p_created_by  IN VARCHAR2,
+        p_freq        IN VARCHAR2,
+        p_byhour      IN NUMBER,
+        p_byminute    IN NUMBER,
+        p_bysecond    IN NUMBER
     );
 
     PROCEDURE update_job(
-        p_job_id IN NUMBER,
-        p_new_job_code IN VARCHAR2,
-        p_modified_by IN VARCHAR2,
-        p_new_freq IN VARCHAR2,
-        p_new_byhour IN NUMBER,
-        p_new_byminute IN NUMBER,
-        p_new_bysecond IN NUMBER
+        p_job_id        IN NUMBER,
+        p_new_job_code   IN VARCHAR2,
+        p_modified_by    IN VARCHAR2,
+        p_new_freq       IN VARCHAR2,
+        p_new_byhour     IN NUMBER,
+        p_new_byminute   IN NUMBER,
+        p_new_bysecond   IN NUMBER
     );
 
     PROCEDURE log_job_execution(
-        p_job_id IN NUMBER,
-        p_log_date IN TIMESTAMP,
+        p_job_id           IN NUMBER,
+        p_log_date         IN TIMESTAMP,
         p_execution_status IN VARCHAR2,
-        p_error_message IN VARCHAR2,
-        p_run_duration IN INTERVAL DAY TO SECOND
+        p_error_message    IN VARCHAR2,
+        p_run_duration     IN INTERVAL DAY TO SECOND
     );
-    
+
     PROCEDURE disable_job(
         p_job_id IN NUMBER
     );
@@ -38,33 +39,48 @@ CREATE OR REPLACE PACKAGE job_management_pkg IS
     PROCEDURE update_job_logs;
 
     PROCEDURE run_jobs;
+
+    PROCEDURE add_audit_entry(
+        p_job_id        IN NUMBER,
+        p_old_job_code  IN VARCHAR2,
+        p_new_job_code  IN VARCHAR2,
+        p_modified_by   IN VARCHAR2,
+        p_old_freq      IN VARCHAR2,
+        p_new_freq      IN VARCHAR2,
+        p_old_byhour    IN NUMBER,
+        p_new_byhour    IN NUMBER,
+        p_old_byminute  IN NUMBER,
+        p_new_byminute  IN NUMBER,
+        p_old_bysecond  IN NUMBER,
+        p_new_bysecond  IN NUMBER
+    );
+
 END job_management_pkg;
 /
-
 
 CREATE OR REPLACE PACKAGE BODY job_management_pkg IS
 
     PROCEDURE create_job(
-        p_job_name IN VARCHAR2,
-        p_job_code IN VARCHAR2,
-        p_created_by IN VARCHAR2,
-        p_freq IN VARCHAR2,
-        p_byhour IN NUMBER,
-        p_byminute IN NUMBER,
-        p_bysecond IN NUMBER
+        p_job_name    IN VARCHAR2,
+        p_job_code    IN VARCHAR2,
+        p_created_by  IN VARCHAR2,
+        p_freq        IN VARCHAR2,
+        p_byhour      IN NUMBER,
+        p_byminute    IN NUMBER,
+        p_bysecond    IN NUMBER
     ) IS
-        v_job_id NUMBER;
+        v_job_id          NUMBER;
         v_repeat_interval VARCHAR2(200);
     BEGIN
-        -- Wstawienie joba do tabeli
+        -- Insert job into jobs table
         INSERT INTO jobs (job_name, job_code, created_by, freq, byhour, byminute, bysecond)
         VALUES (p_job_name, p_job_code, p_created_by, p_freq, p_byhour, p_byminute, p_bysecond)
         RETURNING job_id INTO v_job_id;
 
-        -- Przygotowanie repeat_interval
+        -- Prepare repeat_interval for DBMS_SCHEDULER job
         v_repeat_interval := 'FREQ=' || p_freq || '; BYHOUR=' || p_byhour || '; BYMINUTE=' || p_byminute || '; BYSECOND=' || p_bysecond;
 
-        -- Utworzenie joba w DBMS_SCHEDULER
+        -- Create job in DBMS_SCHEDULER
         DBMS_SCHEDULER.create_job (
             job_name        => p_job_name,
             job_type        => 'PLSQL_BLOCK',
@@ -78,32 +94,32 @@ CREATE OR REPLACE PACKAGE BODY job_management_pkg IS
     END create_job;
 
     PROCEDURE update_job(
-        p_job_id IN NUMBER,
-        p_new_job_code IN VARCHAR2,
-        p_modified_by IN VARCHAR2,
-        p_new_freq IN VARCHAR2,
-        p_new_byhour IN NUMBER,
-        p_new_byminute IN NUMBER,
-        p_new_bysecond IN NUMBER
+        p_job_id        IN NUMBER,
+        p_new_job_code   IN VARCHAR2,
+        p_modified_by    IN VARCHAR2,
+        p_new_freq       IN VARCHAR2,
+        p_new_byhour     IN NUMBER,
+        p_new_byminute   IN NUMBER,
+        p_new_bysecond   IN NUMBER
     ) IS
-        v_old_job_code VARCHAR2(4000);
-        v_old_freq VARCHAR2(20);
-        v_old_byhour NUMBER;
-        v_old_byminute NUMBER;
-        v_old_bysecond NUMBER;
-        v_job_name VARCHAR2(128);
+        v_old_job_code    VARCHAR2(4000);
+        v_old_freq        VARCHAR2(20);
+        v_old_byhour      NUMBER;
+        v_old_byminute    NUMBER;
+        v_old_bysecond    NUMBER;
+        v_job_name        VARCHAR2(128);
         v_repeat_interval VARCHAR2(200);
     BEGIN
+        -- Retrieve current job details
         SELECT job_code, freq, byhour, byminute, bysecond, job_name 
         INTO v_old_job_code, v_old_freq, v_old_byhour, v_old_byminute, v_old_bysecond, v_job_name
         FROM jobs
         WHERE job_id = p_job_id;
 
-        -- Wstawienie wpisu do tabeli audytowej
-        INSERT INTO job_audit (job_id, old_job_code, new_job_code, modified_by, old_freq, new_freq, old_byhour, new_byhour, old_byminute, new_byminute, old_bysecond, new_bysecond)
-        VALUES (p_job_id, v_old_job_code, p_new_job_code, p_modified_by, v_old_freq, p_new_freq, v_old_byhour, p_new_byhour, v_old_byminute, p_new_byminute, v_old_bysecond, p_new_bysecond);
+        -- Add audit entry for job update
+        add_audit_entry(p_job_id, v_old_job_code, p_new_job_code, p_modified_by, v_old_freq, p_new_freq, v_old_byhour, p_new_byhour, v_old_byminute, p_new_byminute, v_old_bysecond, p_new_bysecond);
 
-        -- Aktualizacja kodu joba w tabeli
+        -- Update job code and schedule details in jobs table
         UPDATE jobs
         SET job_code = p_new_job_code,
             freq = p_new_freq,
@@ -114,10 +130,10 @@ CREATE OR REPLACE PACKAGE BODY job_management_pkg IS
             modified_date = SYSTIMESTAMP
         WHERE job_id = p_job_id;
 
-        -- Przygotowanie repeat_interval
+        -- Prepare repeat_interval for DBMS_SCHEDULER job
         v_repeat_interval := 'FREQ=' || p_new_freq || '; BYHOUR=' || p_new_byhour || '; BYMINUTE=' || p_new_byminute || '; BYSECOND=' || p_new_bysecond;
 
-        -- Aktualizacja joba w DBMS_SCHEDULER
+        -- Update DBMS_SCHEDULER job
         DBMS_SCHEDULER.disable (job_name => v_job_name);
         DBMS_SCHEDULER.set_attribute (name => v_job_name, attribute => 'job_action', value => p_new_job_code);
         DBMS_SCHEDULER.set_attribute (name => v_job_name, attribute => 'repeat_interval', value => v_repeat_interval);
@@ -127,15 +143,17 @@ CREATE OR REPLACE PACKAGE BODY job_management_pkg IS
     END update_job;
 
     PROCEDURE log_job_execution(
-        p_job_id IN NUMBER,
-        p_log_date IN TIMESTAMP,
+        p_job_id           IN NUMBER,
+        p_log_date         IN TIMESTAMP,
         p_execution_status IN VARCHAR2,
-        p_error_message IN VARCHAR2,
-        p_run_duration IN INTERVAL DAY TO SECOND
+        p_error_message    IN VARCHAR2,
+        p_run_duration     IN INTERVAL DAY TO SECOND
     ) IS
     BEGIN
+        -- Insert log entry into job_logs table
         INSERT INTO job_logs (job_id, log_date, execution_status, error_message, run_duration)
         VALUES (p_job_id, p_log_date, p_execution_status, p_error_message, p_run_duration);
+
         COMMIT;
     END log_job_execution;
 
@@ -144,17 +162,18 @@ CREATE OR REPLACE PACKAGE BODY job_management_pkg IS
     ) IS
         v_job_name VARCHAR2(128);
     BEGIN
+        -- Retrieve job name for DBMS_SCHEDULER
         SELECT job_name INTO v_job_name
         FROM jobs
         WHERE job_id = p_job_id;
 
-        -- Wyłączenie joba w tabeli
+        -- Disable job in DBMS_SCHEDULER
+        DBMS_SCHEDULER.disable (job_name => v_job_name);
+
+        -- Update job status in jobs table
         UPDATE jobs
         SET is_active = 'N'
         WHERE job_id = p_job_id;
-
-        -- Wyłączenie joba w DBMS_SCHEDULER
-        DBMS_SCHEDULER.disable (job_name => v_job_name);
 
         COMMIT;
     END disable_job;
@@ -164,17 +183,18 @@ CREATE OR REPLACE PACKAGE BODY job_management_pkg IS
     ) IS
         v_job_name VARCHAR2(128);
     BEGIN
+        -- Retrieve job name for DBMS_SCHEDULER
         SELECT job_name INTO v_job_name
         FROM jobs
         WHERE job_id = p_job_id;
 
-        -- Włączenie joba w tabeli
+        -- Enable job in DBMS_SCHEDULER
+        DBMS_SCHEDULER.enable (job_name => v_job_name);
+
+        -- Update job status in jobs table
         UPDATE jobs
         SET is_active = 'Y'
         WHERE job_id = p_job_id;
-
-        -- Włączenie joba w DBMS_SCHEDULER
-        DBMS_SCHEDULER.enable (job_name => v_job_name);
 
         COMMIT;
     END enable_job;
@@ -199,6 +219,8 @@ CREATE OR REPLACE PACKAGE BODY job_management_pkg IS
                     NULL;
             END;
         END LOOP;
+
+        COMMIT;
     END update_job_logs;
 
     PROCEDURE run_jobs IS
@@ -220,9 +242,20 @@ CREATE OR REPLACE PACKAGE BODY job_management_pkg IS
             END;
         END LOOP;
 
-        -- Aktualizacja logów jobów
+        -- Update job logs
         update_job_logs;
+
+        COMMIT;
     END run_jobs;
 
-END job_management_pkg;
-/
+    PROCEDURE add_audit_entry(
+        p_job_id IN NUMBER,
+        p_old_job_code IN VARCHAR2,
+        p_new_job_code IN VARCHAR2,
+        p_modified_by IN VARCHAR2,
+        p_old_freq IN VARCHAR2,
+        p_new_freq IN VARCHAR2,
+        p_old_byhour IN NUMBER,
+        p_new_byhour IN NUMBER,
+        p_old_byminute IN NUMBER,
+        p_new_byminute IN
