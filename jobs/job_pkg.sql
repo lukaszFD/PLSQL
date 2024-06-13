@@ -200,25 +200,24 @@ CREATE OR REPLACE PACKAGE BODY job_management_pkg IS
     END enable_job;
 
     PROCEDURE update_job_logs IS
-        CURSOR job_run_cursor IS
-            SELECT job_name, log_date, status, additional_info, run_duration
-            FROM DBA_SCHEDULER_JOB_RUN_DETAILS
-            WHERE log_date >= SYSDATE - 1;  -- or another condition to fetch recent logs
         v_job_id jobs.job_id%TYPE;
     BEGIN
-        FOR job_run_rec IN job_run_cursor LOOP
-            BEGIN
-                SELECT job_id INTO v_job_id
-                FROM jobs
-                WHERE job_name = job_run_rec.job_name;
-
-                log_job_execution(v_job_id, job_run_rec.log_date, job_run_rec.status, job_run_rec.additional_info, job_run_rec.run_duration);
-            EXCEPTION
-                WHEN NO_DATA_FOUND THEN
-                    -- Handle case where job is not found in our table
-                    NULL;
-            END;
-        END LOOP;
+        -- Log recent job executions from DBA_SCHEDULER_JOB_RUN_DETAILS
+        INSERT INTO job_logs (job_id, log_date, execution_status, error_message, run_duration)
+        SELECT
+            jobs.job_id,
+            job_run_details.log_date,
+            job_run_details.status,
+            job_run_details.additional_info,
+            job_run_details.run_duration
+        FROM
+            jobs
+        JOIN
+            DBA_SCHEDULER_JOB_RUN_DETAILS job_run_details
+        ON
+            jobs.job_name = job_run_details.job_name
+        WHERE
+            job_run_details.log_date >= SYSTIMESTAMP - INTERVAL '1' DAY;
 
         COMMIT;
     END update_job_logs;
@@ -258,4 +257,44 @@ CREATE OR REPLACE PACKAGE BODY job_management_pkg IS
         p_old_byhour IN NUMBER,
         p_new_byhour IN NUMBER,
         p_old_byminute IN NUMBER,
-        p_new_byminute IN
+        p_new_byminute IN NUMBER,
+        p_old_bysecond IN NUMBER,
+        p_new_bysecond IN NUMBER
+    ) IS
+    BEGIN
+        INSERT INTO job_audit (
+            job_id,
+            old_job_code,
+            new_job_code,
+            modified_by,
+            old_freq,
+            new_freq,
+            old_byhour,
+            new_byhour,
+            old_byminute,
+            new_byminute,
+            old_bysecond,
+            new_bysecond,
+            modified_date
+        ) VALUES (
+            p_job_id,
+            p_old_job_code,
+            p_new_job_code,
+            p_modified_by,
+            p_old_freq,
+            p_new_freq,
+            p_old_byhour,
+            p_new_byhour,
+            p_old_byminute,
+            p_new_byminute,
+            p_old_bysecond,
+            p_new_bysecond,
+            SYSTIMESTAMP
+        );
+
+        COMMIT;
+    END add_audit_entry;
+
+END job_management_pkg;
+/
+
