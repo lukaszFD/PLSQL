@@ -1,0 +1,37 @@
+DATABASE  
+├── EMAIL_TEMPLATES (ID, NAME, BODY)  
+│
+├── EMAIL_READY_TO_SEND (ID, RECIPIENT, SUBJECT, TEMPLATE_ID, BODY, CREATED_AT)  
+│   ├── FK: TEMPLATE_ID → EMAIL_TEMPLATES(ID)  
+│  
+├── EMAIL_QUEUE (ID, EMAIL_ID, STATUS, CREATED_AT, SENT_AT, ERROR_MSG)  
+│   ├── FK: EMAIL_ID → EMAIL_READY_TO_SEND(ID)  
+│  
+├── VW_NON_COMPLIANT_ACCOUNTS (view)  
+│   ├── Source: A table containing users and their accounts  
+│  
+├── V_PENDING_EMAILS (view)  
+│   ├── Source: EMAIL_QUEUE + EMAIL_READY_TO_SEND + EMAIL_TEMPLATES  
+│  
+├── HTML_POPULATOR_PKG (package)  
+│   ├── POPULATE_TEMPLATE_WITH_NON_COMPLIANT_SUMMARY  
+│   │   ├── Retrieves data from VW_NON_COMPLIANT_ACCOUNTS  
+│   │   ├── Generates emails in EMAIL_READY_TO_SEND  
+│   │   ├── Adds ID to EMAIL_QUEUE  
+│   │  
+│   ├── POPULATE_TEMPLATE_WITH_ACCOUNT_LIST  
+│       ├── Retrieves data from VW_NON_COMPLIANT_ACCOUNTS  
+│       ├── Generates an HTML account list  
+│       ├── Creates emails in EMAIL_READY_TO_SEND  
+│       ├── Adds ID to EMAIL_QUEUE  
+│
+├── EMAIL_PKG (package)  
+│   ├── SEND_PENDING_EMAILS  
+│   │   ├── Retrieves emails from V_PENDING_EMAILS  
+│   │   ├── Sends emails via SMTP  
+│   │   ├── Updates EMAIL_QUEUE status  
+│   │  
+│   ├── LOG_EMAIL_ERROR  
+│       ├── Updates EMAIL_QUEUE with error details if sending fails  
+│
+└── ANOTHER_PACKAGE_FOR_SENDING (optional, e.g., additional email processing logic)  

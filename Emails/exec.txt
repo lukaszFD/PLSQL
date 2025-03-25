@@ -1,0 +1,43 @@
+BEGIN
+    EMAIL_PKG.ADD_EMAIL('TEST@EXAMPLE.COM', 'WELCOME!', 1);
+END;
+/
+
+
+BEGIN
+    EMAIL_PKG.SEND_PENDING_EMAILS;
+END;
+/
+
+
+BEGIN
+    EMAIL_PKG.UPDATE_TEMPLATE(1, '<H1>WELCOME!</H1><P>WE ARE GLAD TO HAVE YOU.</P>', 'ADMIN');
+END;
+/
+
+
+BEGIN
+    EMAIL_PKG.ADD_EMAIL_TEMPLATE(
+        P_TEMPLATE_NAME => 'NON_COMPLIANT_ALERT',
+        P_TEMPLATE_SUBJECT => 'Urgent: Compliance Alert for Your Account',
+        P_TEMPLATE_BODY => '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Non-Compliant Alert</title>
+</head>
+<body>
+    <h2>Dear {{NAME}},</h2>
+    <p>We wanted to inform you that your account is non-compliant with the following requirements:</p>
+    <ul>
+        <li>Non-Compliant Accounts: {{NON_COMPLIANT_COUNT}}</li>
+        <li>Deadline: {{DEADLINE}}</li>
+    </ul>
+    <p>Please take necessary action to address these non-compliant accounts as soon as possible.</p>
+    <p>Best regards,<br/>Your Compliance Team</p>
+</body>
+</html>'
+    );
+END;
+/
